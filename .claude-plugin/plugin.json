@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "rule-anchor",
+  "displayName": "Rule Anchor",
+  "version": "0.1.0",
+  "description": "Keeps an approved summary of your CLAUDE.md, rules and output style in front of Claude on every prompt and after compaction, and flags it when the sources change.",
+  "author": {
+    "name": "Max Taylor",
+    "email": "maxjt11@gmail.com"
+  },
+  "keywords": [
+    "claude-md",
+    "rules",
+    "reminders",
+    "hooks",
+    "context",
+    "drift"
+  ],
+  "userConfig": {
+    "global_summary_path": {
+      "type": "string",
+      "title": "Global summary path",
+      "description": "Where the approved global summary is stored. Point it into a dotfiles repo to version it. Don't put it in ~/.claude/rules/, or it loads twice.",
+      "default": "~/.claude/rule-anchor.md"
+    },
+    "max_chars": {
+      "type": "number",
+      "title": "Summary length limit",
+      "description": "Maximum characters per summary. It's re-sent on every prompt, so keep it short.",
+      "default": 1500,
+      "min": 200,
+      "max": 10000
+    },
+    "include_local": {
+      "type": "boolean",
+      "title": "Include CLAUDE.local.md",
+      "description": "Summarise the uncommitted CLAUDE.local.md into the project summary, which is usually committed.",
+      "default": false
+    },
+    "inject_on_every_prompt": {
+      "type": "boolean",
+      "title": "Inject on every prompt",
+      "description": "Off: inject only on the first prompt of a session and after compaction.",
+      "default": true
+    }
+  }
+}

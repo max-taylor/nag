@@ -1,0 +1,159 @@
+#!/usr/bin/env bash
+# rule-anchor CLI, used by the plugin's hooks and skills.
+#
+#   rule-anchor status [global|project]          state of each scope's summary (fresh | stale | missing | none)
+#   rule-anchor sources <global|project>         absolute paths of a scope's source files, one per line
+#   rule-anchor write <scope> [--expect <fp>]    save the approved summary body (stdin) with current source hashes
+#   rule-anchor inject                           hook entry point (UserPromptSubmit, SessionStart:compact)
+#
+# Project scope is the git repo containing the working directory (or the directory itself).
+set -uo pipefail
+
+source "$(dirname "$(realpath "$0")")/lib.sh"
+ra_load_options
+
+die() { printf 'rule-anchor: %s\n' "$*" >&2; exit 1; }
+
+require_scope() {
+  case ${1:-} in global | project) ;; *) die "scope must be global or project, got '${1:-}'" ;; esac
+}
+
+cmd_status() {
+  local root scope summary current stored state scopes="global project"
+  [ -n "${1:-}" ] && require_scope "$1" && scopes=$1
+  root=$(ra_project_root "$PWD")
+  ra_discover "$root"
+  for scope in $scopes; do
+    summary=$(ra_summary_path "$scope" "$root")
+    current=$(ra_manifest "$scope")
+    stored=""
+    [ -f "$summary" ] && stored=$(ra_stored_manifest "$summary")
+    state=$(ra_state "$summary" "$current" "$stored")
+    if [ "$scope" = project ]; then
+      printf 'project (%s): %s\n' "${root:-none: working directory is \$HOME}" "$state"
+    else
+      printf 'global: %s\n' "$state"
+    fi
+    [ "$state" = none ] && continue
+    printf '  summary: %s\n' "$(ra_display_path "$summary" "$root")"
+    printf '  fingerprint: %s\n' "$(printf '%s\n' "$current" | ra_hash_stdin)"
+    [ "$state" = stale ] && ra_manifest_diff "$stored" "$current" | sed 's/^/  /'
+  done
+  printf 'max_chars: %s\n' "$RA_MAX_CHARS"
+}
+
+cmd_sources() {
+  require_scope "${1:-}"
+  ra_discover "$(ra_project_root "$PWD")"
+  ra_sources "$1" | cut -f1
+}
+
+cmd_write() {
+  local scope=${1:-} expect="" root summary current body length
+  require_scope "$scope"
+  shift
+  [ "${1:-}" = --expect ] && expect=${2:-}
+  root=$(ra_project_root "$PWD")
+  [ "$scope" = project ] && [ -z "$root" ] && die "no project: the working directory is \$HOME"
+  ra_discover "$root"
+  current=$(ra_manifest "$scope")
+  [ -n "$current" ] || die "$scope scope has no source files to summarise"
+  if [ -n "$expect" ] && [ "$(printf '%s\n' "$current" | ra_hash_stdin)" != "$expect" ]; then
+    die "sources changed since the summary was drafted; run status again and redraft"
+  fi
+  body=$(cat)
+  [ -n "${body//[[:space:]]/}" ] || die "summary body is empty"
+  length=$(printf '%s' "$body" | wc -m | tr -d ' ')
+  [ "$length" -le "$RA_MAX_CHARS" ] || die "summary is $length characters; the limit is $RA_MAX_CHARS"
+  summary=$(ra_summary_path "$scope" "$root")
+  ra_write_summary "$summary" "$scope" "$current" "$body"
+  printf 'rule-anchor: saved %s summary to %s\n' "$scope" "$(ra_display_path "$summary" "$root")"
+}
+
+# --- inject -------------------------------------------------------------------------------------------------------
+
+# Per-session record of which one-off notes have been shown, so stale and missing notes appear once per session (and
+# again after compaction) rather than on every prompt.
+data_dir() {
+  local data=${CLAUDE_PLUGIN_DATA:-${TMPDIR:-/tmp}/rule-anchor}
+  mkdir -p "$data/sessions" 2>/dev/null
+  printf '%s' "$data"
+}
+
+session_marker() { printf '%s/sessions/%s' "$(data_dir)" "${1:-default}"; }
+
+marked() { grep -qxF "$2" "$1" 2>/dev/null; }
+
+stale_note() {
+  local scope=$1 diff=$2
+  printf 'rule-anchor: the %s summary above is out of date with its sources (%s). Where they differ, the source files are authoritative. The user can run /rule-anchor:refresh %s to update it.\n' \
+    "$scope" "$(printf '%s\n' "$diff" | paste -sd ',' - | sed 's/,/, /g')" "$scope"
+}
+
+missing_note() {
+  printf 'rule-anchor: the %s instructions have no approved summary. The user can create one with /rule-anchor:refresh %s.\n' "$1" "$1"
+}
+
+# The first prompt of a session (or after compaction) runs full discovery, so added and missing sources are noticed.
+# Later prompts only re-hash the files each summary lists.
+inject_scope() {
+  local scope=$1 root=$2 marker=$3 first=$4 summary current stored="" state body
+  summary=$(ra_summary_path "$scope" "$root")
+  [ -f "$summary" ] && stored=$(ra_stored_manifest "$summary")
+  if [ "$first" = true ]; then
+    current=$(ra_manifest "$scope")
+  else
+    [ -n "$stored" ] || return 0
+    current=$(ra_rehash_manifest "$stored" "$root")
+  fi
+  state=$(ra_state "$summary" "$current" "$stored")
+  case $state in
+    fresh | stale)
+      if [ "$first" = true ] || [ "$RA_INJECT_ON_EVERY_PROMPT" = true ]; then
+        body=$(ra_summary_body "$summary")
+        printf 'rule-anchor (%s): approved summary of standing instructions that are already loaded; the source files are authoritative.\n%s\n\n' \
+          "$scope" "$body"
+      fi
+      if [ "$state" = stale ] && ! marked "$marker" "stale:$scope"; then
+        stale_note "$scope" "$(ra_manifest_diff "$stored" "$current")"
+        echo "stale:$scope" >>"$marker"
+      fi
+      ;;
+    missing)
+      if [ "$first" = true ] && ! marked "$marker" "missing:$scope"; then
+        missing_note "$scope"
+        echo "missing:$scope" >>"$marker"
+      fi
+      ;;
+  esac
+}
+
+cmd_inject() {
+  local event=UserPromptSubmit session="" cwd="" root marker first=false context scope
+  eval "$(jq -r '@sh "event=\(.hook_event_name // "UserPromptSubmit") session=\(.session_id // "") cwd=\(.cwd // "")"')"
+  root=$(ra_project_root "${cwd:-$PWD}")
+  marker=$(session_marker "$session")
+
+  # Compaction drops earlier injections, so treat it as a fresh start for this session.
+  if [ "$event" = SessionStart ]; then
+    : >"$marker"
+    find "$(dirname "$marker")" -type f -mtime +7 -delete 2>/dev/null
+  fi
+  marked "$marker" seen || first=true
+  echo seen >>"$marker"
+  [ "$first" = true ] && ra_discover "$root"
+
+  context=$(for scope in global project; do inject_scope "$scope" "$root" "$marker" "$first"; done)
+  [ -n "$context" ] || return 0
+  jq -n --arg event "$event" --arg context "$context" \
+    '{hookSpecificOutput: {hookEventName: $event, additionalContext: $context}}'
+}
+
+case ${1:-} in
+  status) shift; cmd_status "$@" ;;
+  sources) shift; cmd_sources "$@" ;;
+  write) shift; cmd_write "$@" ;;
+  # A failing hook must never get in the way of a prompt, so errors go to a log rather than to Claude Code.
+  inject) cmd_inject 2>>"$(data_dir)/error.log"; exit 0 ;;
+  *) sed -n '2,9s/^# \{0,1\}//p' "$0"; exit 1 ;;
+esac
