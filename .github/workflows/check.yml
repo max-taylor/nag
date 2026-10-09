@@ -1,0 +1,27 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    # macOS so the scripts run under the system Bash 3.2 they're written for.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Use /bin/bash (3.2) for `#!/usr/bin/env bash`
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          ln -s /bin/bash "$RUNNER_TEMP/bin/bash"
+          echo "$RUNNER_TEMP/bin" >>"$GITHUB_PATH"
+      - name: Install tools
+        run: |
+          brew install shellcheck
+          npm install -g @anthropic-ai/claude-code
+      - run: bash --version | head -1
+      - run: scripts/check

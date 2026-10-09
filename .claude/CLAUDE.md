@@ -25,6 +25,7 @@ Bump `version` in `.claude-plugin/plugin.json` for any user-visible change.
 - `hooks/hooks.json`: `UserPromptSubmit` and `SessionStart:compact` hooks, both running `inject`
 - `skills/refresh`, `skills/status`
 - `tests/run.sh`: CLI tests run against fixture home and project directories
+- `scripts/check`: every check (shellcheck, tests, plugin validation)
 - `.claude-plugin/`: `plugin.json` and `marketplace.json`
 
 ## Constraints
@@ -38,9 +39,9 @@ Bump `version` in `.claude-plugin/plugin.json` for any user-visible change.
 ## Check
 
 ```bash
-tests/run.sh
-claude plugin validate .claude-plugin/plugin.json --strict
-claude plugin validate . --strict
+scripts/check
 ```
+
+It runs shellcheck (configured in `.shellcheckrc`), `tests/run.sh` and strict validation of the plugin and marketplace manifests. Run it before reporting work done. CI runs the same script on macOS under `/bin/bash` 3.2 (`.github/workflows/check.yml`). This file lives in `.claude/` because strict validation rejects a `CLAUDE.md` at the plugin root.
 
 To confirm the hooks still deliver context end to end, run `claude -p --plugin-dir .` in a project whose summary contains a unique token, and check that Claude can quote the token.

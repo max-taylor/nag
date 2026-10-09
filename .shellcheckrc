@@ -1,0 +1,6 @@
+# Follow `source` so lib.sh is checked through scripts/nag, where its globals are used.
+external-sources=true
+source-path=SCRIPTDIR
+# SC2088: "~/" is deliberately literal in display paths and case patterns.
+# SC2016: awk programs are deliberately single-quoted.
+disable=SC2088,SC2016

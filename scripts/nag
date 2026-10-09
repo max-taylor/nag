@@ -8,6 +8,7 @@
 # Project scope is the git repo containing the working directory (or the directory itself).
 set -uo pipefail
 
+# shellcheck source=lib.sh
 source "$(dirname "$(realpath "$0")")/lib.sh"
 nag_load_options
 

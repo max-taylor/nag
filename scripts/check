@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Runs every check for this repo: shellcheck, the CLI tests and strict plugin validation.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+shellcheck scripts/nag scripts/check tests/run.sh
+tests/run.sh
+claude plugin validate .claude-plugin/plugin.json --strict
+claude plugin validate . --strict

@@ -90,9 +90,9 @@ Set these with `/plugin configure nag`. Values are stored under `pluginConfigs` 
 ## Develop
 
 ```bash
-tests/run.sh                                       # CLI tests against fixture home and project directories
-claude plugin validate .claude-plugin/plugin.json --strict
-claude plugin validate . --strict                  # marketplace manifest
+scripts/check    # shellcheck, the CLI tests (tests/run.sh) and strict plugin validation
 ```
 
-Layout: `.claude-plugin/` (manifest and marketplace), `hooks/hooks.json`, `scripts/nag` (CLI, used by both hooks and skills), `scripts/lib.sh` (discovery, hashing, summary file), `skills/refresh`, `skills/status`, `tests/`. The design rationale is in `spec.md`, and the rules for keeping docs in sync are in `CLAUDE.md`.
+Needs `shellcheck` (`brew install shellcheck`) and the `claude` CLI. CI (`.github/workflows/check.yml`) runs it on macOS under `/bin/bash` 3.2 for every push to `main` and every pull request.
+
+Layout: `.claude-plugin/` (manifest and marketplace), `hooks/hooks.json`, `scripts/nag` (CLI, used by both hooks and skills), `scripts/lib.sh` (discovery, hashing, summary file), `scripts/check` (all checks, also run in CI), `skills/refresh`, `skills/status`, `tests/`. The design rationale is in `spec.md`, and the rules for keeping docs in sync are in `.claude/CLAUDE.md`.
