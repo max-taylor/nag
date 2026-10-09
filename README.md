@@ -1,8 +1,16 @@
 # nag
 
-A Claude Code plugin that keeps a short, approved summary of your instructions (CLAUDE.md, rules, output style) in front of Claude on every prompt and after compaction, and notices when the summary no longer matches its sources.
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/6e5bf3a0-6bd3-4307-bc0d-06bb9c765739" alt="Marge Simpson at the kitchen laptop, unimpressed" width="420">
+</p>
 
-Instruction files load once at session start and get buried as a session grows. A summary re-sent on every prompt keeps the key rules close to the conversation. Hand-written reminder hooks go stale silently; nag hashes the sources each summary was approved against, so a stale one is detected and flagged.
+<p align="center"><em>Hrmmmmmmmmmmm</em></p>
+
+Nag Claude into submission.
+
+Claude is Homer. It means well, it agrees with everything in your CLAUDE.md, and forty prompts later it has forgotten the lot. nag is Marge. On every prompt, and again after compaction, she reminds it of the rules: a short summary you approved of your CLAUDE.md, rules and output style. She also notices when that summary no longer matches its sources.
+
+Instruction files load once at session start and get buried as a session grows. A summary re-sent on every prompt keeps the key rules close to the conversation. Hand-written reminder hooks go stale silently. nag hashes the sources each summary was approved against, so a stale one is detected and flagged. Marge doesn't nag with outdated information.
 
 ## Install
 
