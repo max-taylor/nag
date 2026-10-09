@@ -36,12 +36,12 @@ Saving needs your permission each time: the `write` command deliberately isn't i
 
 ## How it works
 
-**Scopes and sources.** Each scope has its own summary file, made from these sources:
+**Scopes and sources.** Global is the main use: your style and process rules apply in every repo. A project summary is opt-in, for repos whose CLAUDE.md has rules worth repeating; run `/nag:refresh project` there to create one. Each scope has its own summary file, made from these sources:
 
 | Scope | Sources | Summary file |
 | --- | --- | --- |
 | global | `~/.claude/CLAUDE.md`, `~/.claude/rules/**/*.md`, the active output style in `~/.claude/output-styles/` | `~/.claude/nag.md` (configurable) |
-| project (git root of the working directory) | `CLAUDE.md`, `.claude/CLAUDE.md`, `.claude/rules/**/*.md`; `AGENTS.md` and `.claude/AGENTS.md` when there is no CLAUDE.md; `CLAUDE.local.md` if enabled | `.claude/nag.md` (commit it) |
+| project (git root of the working directory) | `CLAUDE.md`, `.claude/CLAUDE.md`, `.claude/rules/**/*.md`; `AGENTS.md` and `.claude/AGENTS.md` when there is no CLAUDE.md; `CLAUDE.local.md` if enabled | `.claude/nag.md` (optional; commit it if your team runs nag) |
 
 `@path` imports are followed, up to four hops, as Claude Code does. Rules with `paths:` frontmatter are excluded, because they only apply to matching files. Symlinks are followed. A file that is already a global source is left out of the project scope, so a dotfiles repo isn't summarised twice.
 
@@ -66,7 +66,7 @@ Replies are at most 5 lines unless detail is requested. …
 | --- | --- |
 | fresh | The summary body |
 | stale (a source changed, was added or was removed) | The summary body, plus a note that names the changed files and says the sources take precedence. The note is shown once per session and again after compaction |
-| missing (sources but no summary) | A one-line note on the first prompt of each session |
+| missing (sources but no summary) | Global: a one-line note on the first prompt of each session. Project: nothing, since project summaries are opt-in |
 | none | Nothing |
 
 The hook always exits 0, so it can never block a prompt. It takes about 200 ms on the first prompt of a session, which runs full discovery, and about 90 ms on later prompts, which only re-hash the files each summary lists.

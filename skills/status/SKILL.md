@@ -6,7 +6,7 @@ allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/nag status*)
 ---
 
-Run `${CLAUDE_PLUGIN_ROOT}/scripts/nag status $ARGUMENTS` and report each scope's state in one line. For stale scopes, add the source files that changed. Leave out fingerprints.
+Run `${CLAUDE_PLUGIN_ROOT}/scripts/nag status $ARGUMENTS` and report each scope's state in one line. For stale scopes, add the source files that changed. Leave out fingerprints and the `source:` list.
 
 Each state means:
 
@@ -15,4 +15,4 @@ Each state means:
 - `missing`: there are sources but no approved summary.
 - `none`: the scope has no source files.
 
-If a scope is stale or missing, mention `/nag:refresh`. Don't run it.
+If a scope is stale, or global is missing, mention `/nag:refresh`. A missing project summary is optional; mention `/nag:refresh project` only in passing. Don't run it.

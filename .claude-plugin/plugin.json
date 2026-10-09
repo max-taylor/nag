@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "nag",
   "displayName": "Nag",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Keeps an approved summary of your CLAUDE.md, rules and output style in front of Claude on every prompt and after compaction, and flags it when the sources change.",
   "author": {
     "name": "Max Taylor",
@@ -34,7 +34,7 @@
     "include_local": {
       "type": "boolean",
       "title": "Include CLAUDE.local.md",
-      "description": "Summarise the uncommitted CLAUDE.local.md into the project summary, which is usually committed.",
+      "description": "Summarise the uncommitted CLAUDE.local.md into the project summary, which may be committed.",
       "default": false
     }
   }

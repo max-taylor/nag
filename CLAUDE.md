@@ -20,7 +20,7 @@ Bump `version` in `.claude-plugin/plugin.json` for any user-visible change.
 
 ## Layout
 
-- `scripts/nag`: the CLI (`status`, `sources`, `write`, `inject`), used by both the hooks and the skills
+- `scripts/nag`: the CLI (`status`, `write`, `inject`), used by both the hooks and the skills
 - `scripts/lib.sh`: options, source discovery, hashing, summary-file parsing
 - `hooks/hooks.json`: `UserPromptSubmit` and `SessionStart:compact` hooks, both running `inject`
 - `skills/refresh`, `skills/status`

@@ -17,7 +17,7 @@ CLAUDE.md, rule files and the output style load once at session start. In long s
 2. Store it in a file with a hash of each source, so staleness is detected mechanically.
 3. Inject it on every prompt and after compaction.
 4. When sources have changed, keep injecting the last approved summary, and say once per session that it's stale.
-5. Support a global scope and a project scope.
+5. Support a global scope, the main use, and an opt-in project scope.
 
 ## Non-goals (v1)
 
@@ -38,7 +38,7 @@ CLAUDE.md, rule files and the output style load once at session start. In long s
 
 ## Concepts
 
-**Scope.** `global` (user-level files) or `project` (files in the repo). Each scope has its own summary file. Both are injected when both exist.
+**Scope.** `global` (user-level files) or `project` (files in the repo). Each scope has its own summary file. Both are injected when both exist. Global is the main use, since style and process rules usually live there. Project is opt-in: it's only injected once the user has created a summary with `/nag:refresh project`, and a repo without one gets no note.
 
 **Sources.** The files a scope's summary is made from:
 
@@ -70,7 +70,7 @@ Replies are short: at most 5 lines unless detail is requested. …
 
 Default locations:
 - global: `~/.claude/nag.md`, configurable via `userConfig.global_summary_path` so it can live in a dotfiles repo
-- project: `.claude/nag.md`, committed so the team shares the approved summary
+- project: `.claude/nag.md`. Committing it is optional: it only helps teammates who also run nag, and goes stale for them when CLAUDE.md changes
 
 **Staleness.** A summary is stale when any of the following holds:
 
@@ -89,7 +89,7 @@ nag/
 │   └── marketplace.json   # lets the repo be added as a local marketplace
 ├── hooks/hooks.json
 ├── scripts/
-│   ├── nag                # CLI: status | sources | write | inject
+│   ├── nag                # CLI: status | write | inject
 │   └── lib.sh             # discovery, hashing, summary-file parsing
 ├── skills/
 │   ├── refresh/SKILL.md
@@ -101,9 +101,9 @@ Bash 3.2 plus `jq` and `shasum`, matching the existing dotfiles hooks. `inject` 
 
 ### `/nag:refresh [global|project]`
 
-Defaults to both scopes, skipping any that are fresh.
+Defaults to global, plus project when it already has a summary, skipping any that are fresh. A new project summary needs `/nag:refresh project`.
 
-1. `nag sources <scope>` lists the sources. Claude reads them.
+1. `nag status <scope>` gives the state, a fingerprint and the source paths. Claude reads the sources. (A separate `sources` command was folded into `status` in 0.3.0.)
 2. Claude drafts a summary:
    - Facts, not commands ("Replies are at most 5 lines unless detail is asked for", not "You MUST…"). The hooks docs say imperative injected text can trip prompt-injection defences.
    - Only the always-on rules that are most likely to drift. Skip anything already enforced by hooks or lint.
@@ -129,7 +129,7 @@ Behaviour per scope:
 | --- | --- |
 | fresh | the summary body |
 | stale | the summary body, plus one line: "nag: <scope> summary is out of date with <files>; the user can run /nag:refresh" (first prompt of each session and after compaction only, tracked in `${CLAUDE_PLUGIN_DATA}/<session_id>`) |
-| missing | nothing, except a one-line note on the first prompt of a session if sources exist |
+| missing | nothing, except a one-line note on the first prompt of a session for the global scope. A project without a summary gets no note, since project summaries are opt-in |
 
 Global is injected first, then project. Output is a single block prefixed `nag:` so it's identifiable.
 

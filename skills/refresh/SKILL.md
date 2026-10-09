@@ -5,21 +5,20 @@ argument-hint: "[global|project]"
 disable-model-invocation: true
 allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/nag status*)
-  - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/nag sources *)
   - Read
 ---
 
-Refresh the nag summary for scope `$ARGUMENTS`. If no scope is given, do both scopes, skipping any that are `fresh` or `none`. Do one scope at a time.
+Refresh the nag summary for scope `$ARGUMENTS`. If no scope is given, do the global scope, plus the project scope only if it already has a summary (`fresh` or `stale`). Skip any that are `fresh` or `none`. Do one scope at a time.
 
 ## 1. Check state
 
-Run `${CLAUDE_PLUGIN_ROOT}/scripts/nag status <scope>`. Note the summary path, `fingerprint` and `max_chars`. For a stale summary, also note the lines that list changed, added or removed sources.
+Run `${CLAUDE_PLUGIN_ROOT}/scripts/nag status <scope>`. Note the summary path, `fingerprint`, `max_chars` and the `source:` paths. For a stale summary, also note the lines that list changed, added or removed sources.
 
 If the requested scope is `fresh`, say so and stop, unless the user asked to redo it.
 
 ## 2. Read
 
-Run `${CLAUDE_PLUGIN_ROOT}/scripts/nag sources <scope>` and read every file it lists. If a summary already exists, read it as well.
+Read every `source:` file from step 1. If a summary already exists, read it as well.
 
 ## 3. Draft
 
@@ -46,4 +45,4 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/nag write <scope> --expect <fingerprint> <<'NAG_EO
 NAG_EOF
 ```
 
-If it reports that the sources changed, go back to step 1. When a project summary is saved, mention that `.claude/nag.md` is meant to be committed.
+If it reports that the sources changed, go back to step 1. When a project summary is saved, mention that committing `.claude/nag.md` is optional and only helps teammates who also run nag.

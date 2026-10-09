@@ -65,6 +65,8 @@ state_of() { "$CLI" status "$1" | head -1 | sed 's/.*: //'; }
 
 fingerprint_of() { "$CLI" status "$1" | awk '/fingerprint:/ { print $2 }'; }
 
+sources_of() { "$CLI" status "$1" | sed -n 's/^  source: //p'; }
+
 # --- sources ------------------------------------------------------------------------------------------------------
 
 setup
@@ -73,24 +75,24 @@ check "global sources: CLAUDE.md, import, unscoped rules (recursive), active out
 $HOME/.claude/output-styles/terse-style.md
 $HOME/.claude/rules/engineering.md
 $HOME/.claude/rules/sub/nested.md
-$HOME/extra.md" "$("$CLI" sources global)"
+$HOME/extra.md" "$(sources_of global)"
 check "project sources: CLAUDE.md wins over AGENTS.md, local excluded by default" \
   "$ROOT/proj/.claude/rules/api.md
-$ROOT/proj/CLAUDE.md" "$("$CLI" sources project)"
+$ROOT/proj/CLAUDE.md" "$(sources_of project)"
 CLAUDE_PLUGIN_OPTION_INCLUDE_LOCAL=true
 export CLAUDE_PLUGIN_OPTION_INCLUDE_LOCAL
-contains "include_local adds CLAUDE.local.md" "CLAUDE.local.md" "$("$CLI" sources project)"
+contains "include_local adds CLAUDE.local.md" "CLAUDE.local.md" "$(sources_of project)"
 unset CLAUDE_PLUGIN_OPTION_INCLUDE_LOCAL
 rm "$ROOT/proj/CLAUDE.md" "$ROOT/proj/CLAUDE.local.md"
-contains "AGENTS.md used when there is no CLAUDE.md" "$ROOT/proj/AGENTS.md" "$("$CLI" sources project)"
+contains "AGENTS.md used when there is no CLAUDE.md" "$ROOT/proj/AGENTS.md" "$(sources_of project)"
 teardown
 
 setup
 # A dotfiles-style repo whose rules are also the global rules: shared files belong to global only.
 ln -s "$HOME/.claude/rules/engineering.md" "$ROOT/proj/.claude/rules/engineering.md"
-lacks "project drops sources that are already global" "engineering.md" "$("$CLI" sources project)"
+lacks "project drops sources that are already global" "engineering.md" "$(sources_of project)"
 cd "$HOME" || exit 1
-check "no project scope when the working directory is \$HOME" "" "$("$CLI" sources project)"
+check "no project scope when the working directory is \$HOME" "" "$(sources_of project)"
 teardown
 
 # --- write and status ---------------------------------------------------------------------------------------------
@@ -151,6 +153,7 @@ setup
 first=$(inject s1)
 contains "missing note on the first prompt" "global instructions have no approved summary" "$first"
 check "missing note only once per session" "" "$(inject s1)"
+lacks "no missing note for project scope, which is opt-in" "project instructions" "$first"
 
 printf 'GLOBAL BODY\n' | "$CLI" write global >/dev/null
 printf 'PROJECT BODY\n' | "$CLI" write project >/dev/null

@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # nag CLI, used by the plugin's hooks and skills.
 #
-#   nag status [global|project]          state of each scope's summary (fresh | stale | missing | none)
-#   nag sources <global|project>         absolute paths of a scope's source files, one per line
+#   nag status [global|project]          state of each scope's summary (fresh | stale | missing | none) and its sources
 #   nag write <scope> [--expect <fp>]    save the approved summary body (stdin) with current source hashes
 #   nag inject                           hook entry point (UserPromptSubmit, SessionStart:compact)
 #
@@ -37,15 +36,10 @@ cmd_status() {
     [ "$state" = none ] && continue
     printf '  summary: %s\n' "$(nag_display_path "$summary" "$root")"
     printf '  fingerprint: %s\n' "$(printf '%s\n' "$current" | nag_hash_stdin)"
+    nag_sources "$scope" | cut -f1 | sed 's/^/  source: /'
     [ "$state" = stale ] && nag_manifest_diff "$stored" "$current" | sed 's/^/  /'
   done
   printf 'max_chars: %s\n' "$NAG_MAX_CHARS"
-}
-
-cmd_sources() {
-  require_scope "${1:-}"
-  nag_discover "$(nag_project_root "$PWD")"
-  nag_sources "$1" | cut -f1
 }
 
 cmd_write() {
@@ -117,8 +111,9 @@ inject_scope() {
         echo "stale:$scope" >>"$marker"
       fi
       ;;
+    # Project summaries are opt-in, so only a missing global summary is worth a note.
     missing)
-      if [ "$first" = true ] && ! marked "$marker" "missing:$scope"; then
+      if [ "$scope" = global ] && [ "$first" = true ] && ! marked "$marker" "missing:$scope"; then
         missing_note "$scope"
         echo "missing:$scope" >>"$marker"
       fi
@@ -149,7 +144,6 @@ cmd_inject() {
 
 case ${1:-} in
   status) shift; cmd_status "$@" ;;
-  sources) shift; cmd_sources "$@" ;;
   write) shift; cmd_write "$@" ;;
   # A failing hook must never get in the way of a prompt, so errors go to a log rather than to Claude Code.
   inject) cmd_inject 2>>"$(data_dir)/error.log"; exit 0 ;;
