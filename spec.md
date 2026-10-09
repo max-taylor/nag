@@ -1,4 +1,4 @@
-# rule-anchor: spec
+# nag: spec
 
 A Claude Code plugin that keeps a short, approved summary of your rules in front of Claude on every prompt, and notices when that summary no longer matches the rules it was made from.
 
@@ -53,7 +53,7 @@ CLAUDE.md, rule files and the output style load once at session start. In long s
 
 ```markdown
 ---
-rule-anchor: 1
+nag: 1
 scope: global
 approved: 2026-10-09T14:02:00Z
 sources:
@@ -69,8 +69,8 @@ Replies are short: at most 5 lines unless detail is requested. …
 ```
 
 Default locations:
-- global: `~/.claude/rule-anchor.md`, configurable via `userConfig.global_summary_path` so it can live in a dotfiles repo
-- project: `.claude/rule-anchor.md`, committed so the team shares the approved summary
+- global: `~/.claude/nag.md`, configurable via `userConfig.global_summary_path` so it can live in a dotfiles repo
+- project: `.claude/nag.md`, committed so the team shares the approved summary
 
 **Staleness.** A summary is stale when any of the following holds:
 
@@ -83,13 +83,13 @@ All three are computed by a script, never by the model.
 ## Components
 
 ```
-rule-anchor/
+nag/
 ├── .claude-plugin/
 │   ├── plugin.json
 │   └── marketplace.json   # lets the repo be added as a local marketplace
 ├── hooks/hooks.json
 ├── scripts/
-│   ├── rule-anchor        # CLI: status | sources | write | inject
+│   ├── nag                # CLI: status | sources | write | inject
 │   └── lib.sh             # discovery, hashing, summary-file parsing
 ├── skills/
 │   ├── refresh/SKILL.md
@@ -99,11 +99,11 @@ rule-anchor/
 
 Bash 3.2 plus `jq` and `shasum`, matching the existing dotfiles hooks. `inject` runs on every prompt, so it never calls a model and does each step in a single process for all files. It measured about 200 ms on the first prompt (full discovery) and about 90 ms on later prompts, which only re-hash the files each summary already lists. Added files are therefore picked up at the next session start or compaction.
 
-### `/rule-anchor:refresh [global|project]`
+### `/nag:refresh [global|project]`
 
 Defaults to both scopes, skipping any that are fresh.
 
-1. `rule-anchor sources <scope>` lists the sources. Claude reads them.
+1. `nag sources <scope>` lists the sources. Claude reads them.
 2. Claude drafts a summary:
    - Facts, not commands ("Replies are at most 5 lines unless detail is asked for", not "You MUST…"). The hooks docs say imperative injected text can trip prompt-injection defences.
    - Only the always-on rules that are most likely to drift. Skip anything already enforced by hooks or lint.
@@ -111,13 +111,13 @@ Defaults to both scopes, skipping any that are fresh.
    - The last line points to the full sources.
 3. If a summary already exists, Claude shows a diff against it. Otherwise it shows the full draft.
 4. The user approves, edits or rejects it. Nothing is written without approval.
-5. On approval, `rule-anchor write <scope> --expect <fingerprint>` takes the body on stdin, hashes the current sources and writes the file. The fingerprint comes from `status` at drafting time, and the write is refused if the sources changed since then. Otherwise it would record hashes of files the summary wasn't drafted from. It also refuses an empty body or one over `max_chars`.
+5. On approval, `nag write <scope> --expect <fingerprint>` takes the body on stdin, hashes the current sources and writes the file. The fingerprint comes from `status` at drafting time, and the write is refused if the sources changed since then. Otherwise it would record hashes of files the summary wasn't drafted from. It also refuses an empty body or one over `max_chars`.
 
-### `/rule-anchor:status`
+### `/nag:status`
 
 Shows each scope's state (fresh, stale or missing) and lists which sources changed. It doesn't modify anything.
 
-### Hook: `rule-anchor inject`
+### Hook: `nag inject`
 
 Registered on:
 - `UserPromptSubmit`: every prompt
@@ -128,19 +128,22 @@ Behaviour per scope:
 | State | Injected |
 | --- | --- |
 | fresh | the summary body |
-| stale | the summary body, plus one line: "rule-anchor: <scope> summary is out of date with <files>; the user can run /rule-anchor:refresh" (first prompt of each session and after compaction only, tracked in `${CLAUDE_PLUGIN_DATA}/<session_id>`) |
+| stale | the summary body, plus one line: "nag: <scope> summary is out of date with <files>; the user can run /nag:refresh" (first prompt of each session and after compaction only, tracked in `${CLAUDE_PLUGIN_DATA}/<session_id>`) |
 | missing | nothing, except a one-line note on the first prompt of a session if sources exist |
 
-Global is injected first, then project. Output is a single block prefixed `rule-anchor:` so it's identifiable.
+Global is injected first, then project. Output is a single block prefixed `nag:` so it's identifiable.
 
 ## Config (`userConfig`)
 
 | Key | Type | Default |
 | --- | --- | --- |
-| `global_summary_path` | file | `~/.claude/rule-anchor.md` |
+| `global_summary_path` | file | `~/.claude/nag.md` |
 | `max_chars` | number | 1500 |
 | `include_local` | boolean | false |
-| `inject_on_every_prompt` | boolean | true (false = SessionStart and compaction only) |
+
+Injection on every prompt is not configurable: re-sending the summary each prompt is the point of the plugin. An `inject_on_every_prompt` option was removed in 0.2.0.
+
+Options are read from the hook env, falling back to `pluginConfigs` in `~/.claude/settings.json` for the skills, which don't get the env. Options set in project settings therefore reach the hooks but not the skills. This is documented as a limit rather than handled.
 
 ## Risks and spike
 
@@ -154,7 +157,7 @@ The goal is to measure whether the reminder improves adherence. This is separate
 
 - **Why not single-prompt evals.** Drift appears only deep in a session, so a fresh one-prompt case shows little difference.
 - **Setup.** Take real long transcripts from `~/.claude/projects/` and cut them at several depths (about 20k, 80k and 150k tokens). At each cut, fork with `--resume <id> --fork-session` and send a fixed probe prompt in `-p` mode.
-- **Arms.** No reminder, a hand-written echo hook, and the rule-anchor summary. All arms use the same forks and probes, with about 5 samples per cell.
+- **Arms.** No reminder, a hand-written echo hook, and the nag summary. All arms use the same forks and probes, with about 5 samples per cell.
 - **Grading.** Scripted where possible: line caps, banned openers, `DONE.` format, prose versus bullets. Use an LLM grader only for fuzzy rules, such as "searched for an existing helper first".
 - **Output.** Pass rate per arm per depth. If adherence falls with depth without a reminder and stays flat with one, the reminder helps. If both reminder arms are equal, the plugin's value is mainly the staleness check.
 - **First check.** Find out whether `claude plugin eval` can seed a case from a forked transcript. If it can, use it for the arms and the baseline.
@@ -168,13 +171,16 @@ The goal is to measure whether the reminder improves adherence. This is separate
 ## Migration for this dotfiles repo
 
 Once the spike passes:
-1. Install the plugin. Run `/rule-anchor:refresh global` with `global_summary_path` pointing into `dotfiles/.claude/`.
+1. Install the plugin. Run `/nag:refresh global` with `global_summary_path` pointing into `dotfiles/.claude/`.
 2. Remove the echo hook from `.claude/settings.local.json`.
 3. Remove the "when editing `terse.md`, update the hook summary" note from `CLAUDE.md`, and the matching README lines.
 
+## Decided
+
+- Name: `nag`. Names starting with `claude-` are reserved, so the plugin is `nag`; the repo can be `claude-nag` for searchability. The branding is Marge Simpson-style: the plugin is the strict one holding a forgetful Claude to its rules.
+
 ## Open questions
 
-1. Name: `rule-anchor` is a placeholder. Names starting with `claude-` are reserved.
-2. Should a stale summary trigger a prompt to refresh automatically (for example from SessionStart), or only a note?
-3. Should the summary include the engineering rules, which `/finish` and the Stop hook already enforce, or only the communication style?
-4. Should it be published to a marketplace, or kept as a personal plugin installed from this repo?
+1. Should a stale summary trigger a prompt to refresh automatically (for example from SessionStart), or only a note?
+2. Should the summary include the engineering rules, which `/finish` and the Stop hook already enforce, or only the communication style?
+3. Should it be published to a marketplace, or kept as a personal plugin installed from this repo?

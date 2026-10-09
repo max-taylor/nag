@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/rule-anchor",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/nag",
             "args": ["inject"],
             "timeout": 10
           }
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/rule-anchor",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/nag",
             "args": ["inject"],
             "timeout": 10
           }

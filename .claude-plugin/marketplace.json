@@ -1,13 +1,13 @@
 {
-  "name": "rule-anchor",
-  "description": "Rule Anchor: keeps an approved summary of your Claude Code instructions in front of Claude.",
+  "name": "nag",
+  "description": "Nag: keeps an approved summary of your Claude Code instructions in front of Claude.",
   "owner": {
     "name": "Max Taylor",
     "email": "maxjt11@gmail.com"
   },
   "plugins": [
     {
-      "name": "rule-anchor",
+      "name": "nag",
       "source": "./",
       "description": "Keeps an approved summary of your CLAUDE.md, rules and output style in front of Claude on every prompt and after compaction."
     }

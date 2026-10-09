@@ -1,18 +1,18 @@
-# rule-anchor
+# nag
 
 A Claude Code plugin that keeps a short, approved summary of your instructions (CLAUDE.md, rules, output style) in front of Claude on every prompt and after compaction, and notices when the summary no longer matches its sources.
 
-Instruction files load once at session start and get buried as a session grows. A summary re-sent on every prompt keeps the key rules close to the conversation. Hand-written reminder hooks go stale silently; rule-anchor hashes the sources each summary was approved against, so a stale one is detected and flagged.
+Instruction files load once at session start and get buried as a session grows. A summary re-sent on every prompt keeps the key rules close to the conversation. Hand-written reminder hooks go stale silently; nag hashes the sources each summary was approved against, so a stale one is detected and flagged.
 
 ## Install
 
 ```bash
 # From this directory, as a local marketplace
-claude plugin marketplace add ~/Code/rule-anchor
-claude plugin install rule-anchor@rule-anchor
+claude plugin marketplace add ~/Code/nag
+claude plugin install nag@nag
 
 # Or for one session, while developing
-claude --plugin-dir ~/Code/rule-anchor
+claude --plugin-dir ~/Code/nag
 ```
 
 Requires `jq`, `shasum` and `realpath`, all of which ship with macOS.
@@ -21,8 +21,8 @@ Requires `jq`, `shasum` and `realpath`, all of which ship with macOS.
 
 | Command | Does |
 | --- | --- |
-| `/rule-anchor:refresh [global\|project]` | Claude reads the sources, drafts a summary and shows it (or a diff against the existing one). After you approve, it saves the summary with the source hashes |
-| `/rule-anchor:status [global\|project]` | Shows each scope's state, fresh, stale, missing or none, plus which sources changed |
+| `/nag:refresh [global\|project]` | Claude reads the sources, drafts a summary and shows it (or a diff against the existing one). After you approve, it saves the summary with the source hashes |
+| `/nag:status [global\|project]` | Shows each scope's state, fresh, stale, missing or none, plus which sources changed |
 
 Saving needs your permission each time: the `write` command deliberately isn't in the refresh skill's `allowed-tools`, so it serves as the final confirmation.
 
@@ -32,8 +32,8 @@ Saving needs your permission each time: the `write` command deliberately isn't i
 
 | Scope | Sources | Summary file |
 | --- | --- | --- |
-| global | `~/.claude/CLAUDE.md`, `~/.claude/rules/**/*.md`, the active output style in `~/.claude/output-styles/` | `~/.claude/rule-anchor.md` (configurable) |
-| project (git root of the working directory) | `CLAUDE.md`, `.claude/CLAUDE.md`, `.claude/rules/**/*.md`; `AGENTS.md` and `.claude/AGENTS.md` when there is no CLAUDE.md; `CLAUDE.local.md` if enabled | `.claude/rule-anchor.md` (commit it) |
+| global | `~/.claude/CLAUDE.md`, `~/.claude/rules/**/*.md`, the active output style in `~/.claude/output-styles/` | `~/.claude/nag.md` (configurable) |
+| project (git root of the working directory) | `CLAUDE.md`, `.claude/CLAUDE.md`, `.claude/rules/**/*.md`; `AGENTS.md` and `.claude/AGENTS.md` when there is no CLAUDE.md; `CLAUDE.local.md` if enabled | `.claude/nag.md` (commit it) |
 
 `@path` imports are followed, up to four hops, as Claude Code does. Rules with `paths:` frontmatter are excluded, because they only apply to matching files. Symlinks are followed. A file that is already a global source is left out of the project scope, so a dotfiles repo isn't summarised twice.
 
@@ -41,7 +41,7 @@ Saving needs your permission each time: the `write` command deliberately isn't i
 
 ```markdown
 ---
-rule-anchor: 1
+nag: 1
 scope: global
 approved: 2026-10-09T14:02:00Z
 sources:
@@ -52,7 +52,7 @@ sources:
 Replies are at most 5 lines unless detail is requested. …
 ```
 
-**Injection.** A `UserPromptSubmit` hook and a `SessionStart` hook (matcher `compact`) run `scripts/rule-anchor inject`. For each scope:
+**Injection.** A `UserPromptSubmit` hook and a `SessionStart` hook (matcher `compact`) run `scripts/nag inject`. For each scope:
 
 | State | Injected |
 | --- | --- |
@@ -65,18 +65,18 @@ The hook always exits 0, so it can never block a prompt. It takes about 200 ms o
 
 ## Configure
 
-Set these with `/plugin configure rule-anchor`. Values are stored under `pluginConfigs` in `~/.claude/settings.json`.
+Set these with `/plugin configure nag`. Values are stored under `pluginConfigs` in `~/.claude/settings.json`.
 
 | Option | Default | |
 | --- | --- | --- |
-| `global_summary_path` | `~/.claude/rule-anchor.md` | Point it into a dotfiles repo to version the summary. Don't put it under `~/.claude/rules/`, or it loads twice |
+| `global_summary_path` | `~/.claude/nag.md` | Point it into a dotfiles repo to version the summary. Don't put it under `~/.claude/rules/`, or it loads twice |
 | `max_chars` | 1500 | Maximum length of each summary |
 | `include_local` | false | Add `CLAUDE.local.md` to the project sources |
-| `inject_on_every_prompt` | true | When false, inject only on the first prompt of a session and after compaction |
 
 ## Limits
 
 - Only the project root is scanned. CLAUDE.md files in parent directories, nested subdirectories, the managed policy file, and project-level output styles are not sources.
+- Options are read from user settings only. Hooks get them from Claude Code, but the skills read `pluginConfigs` in `~/.claude/settings.json`, so options set in a project's `.claude/settings.json` reach the hooks but not `/nag:refresh` or `/nag:status`, and the two can disagree (for example on `max_chars`).
 - The summary is advisory context, not enforcement. Use Stop or PreToolUse hooks for rules that must hold.
 
 ## Develop
@@ -87,4 +87,4 @@ claude plugin validate .claude-plugin/plugin.json --strict
 claude plugin validate . --strict                  # marketplace manifest
 ```
 
-Layout: `.claude-plugin/` (manifest and marketplace), `hooks/hooks.json`, `scripts/rule-anchor` (CLI, used by both hooks and skills), `scripts/lib.sh` (discovery, hashing, summary file), `skills/refresh`, `skills/status`, `tests/`. The design rationale is in `spec.md`, and the rules for keeping docs in sync are in `CLAUDE.md`.
+Layout: `.claude-plugin/` (manifest and marketplace), `hooks/hooks.json`, `scripts/nag` (CLI, used by both hooks and skills), `scripts/lib.sh` (discovery, hashing, summary file), `skills/refresh`, `skills/status`, `tests/`. The design rationale is in `spec.md`, and the rules for keeping docs in sync are in `CLAUDE.md`.

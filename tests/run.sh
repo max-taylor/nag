@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Runs the rule-anchor CLI against fixture home and project directories. No dependencies beyond jq and shasum.
+# Runs the nag CLI against fixture home and project directories. No dependencies beyond jq and shasum.
 set -uo pipefail
 
-CLI="$(cd "$(dirname "$0")/.." && pwd)/scripts/rule-anchor"
+CLI="$(cd "$(dirname "$0")/.." && pwd)/scripts/nag"
 PASS=0
 FAIL=0
 
@@ -33,8 +33,7 @@ setup() {
   ROOT=$(realpath "$(mktemp -d)")
   export HOME="$ROOT/home"
   export CLAUDE_PLUGIN_DATA="$ROOT/data"
-  unset CLAUDE_PLUGIN_OPTION_GLOBAL_SUMMARY_PATH CLAUDE_PLUGIN_OPTION_MAX_CHARS CLAUDE_PLUGIN_OPTION_INCLUDE_LOCAL \
-    CLAUDE_PLUGIN_OPTION_INJECT_ON_EVERY_PROMPT
+  unset CLAUDE_PLUGIN_OPTION_GLOBAL_SUMMARY_PATH CLAUDE_PLUGIN_OPTION_MAX_CHARS CLAUDE_PLUGIN_OPTION_INCLUDE_LOCAL
   mkdir -p "$HOME/.claude/rules/sub" "$ROOT/dotfiles/output-styles" "$ROOT/proj/.claude/rules"
   ln -s "$ROOT/dotfiles/output-styles" "$HOME/.claude/output-styles"
   printf 'Global rules. See @~/extra.md and `@ignored.md`.\n' >"$ROOT/dotfiles/CLAUDE.md"
@@ -100,7 +99,7 @@ setup
 check "missing before any summary" "missing" "$(state_of global)"
 printf 'Replies are short.\n' | "$CLI" write global >/dev/null
 check "fresh after write" "fresh" "$(state_of global)"
-contains "summary records hashed sources" "path: \"~/.claude/rules/engineering.md\"" "$(cat "$HOME/.claude/rule-anchor.md")"
+contains "summary records hashed sources" "path: \"~/.claude/rules/engineering.md\"" "$(cat "$HOME/.claude/nag.md")"
 
 printf 'Changed.\n' >>"$HOME/.claude/rules/engineering.md"
 check "stale after a source edit" "stale" "$(state_of global)"
@@ -142,11 +141,8 @@ printf 'Body.\n' | "$CLI" write global >/dev/null
 check "global_summary_path is honoured" "yes" "$([ -f "$HOME/dotfiles-summary.md" ] && echo yes)"
 unset CLAUDE_PLUGIN_OPTION_GLOBAL_SUMMARY_PATH
 
-printf '{"pluginConfigs":{"rule-anchor@local":{"options":{"max_chars":7}}}}\n' >"$HOME/.claude/settings.json"
+printf '{"pluginConfigs":{"nag@local":{"options":{"max_chars":7}}}}\n' >"$HOME/.claude/settings.json"
 contains "options fall back to pluginConfigs in user settings" "max_chars: 7" "$("$CLI" status)"
-printf '{"pluginConfigs":{"rule-anchor@local":{"options":{"inject_on_every_prompt":false}}}}\n' >"$HOME/.claude/settings.json"
-inject s9 >/dev/null
-check "a false option in pluginConfigs is honoured" "" "$(inject s9)"
 teardown
 
 # --- inject -------------------------------------------------------------------------------------------------------
@@ -175,13 +171,6 @@ lacks "later prompts skip full discovery" "later.md" "$(inject s3)"
 contains "compaction runs full discovery" "added ~/.claude/rules/later.md" "$(inject s3 SessionStart)"
 rm "$HOME/.claude/rules/later.md"
 contains "stale note repeats after compaction" "out of date" "$(inject s3 SessionStart)"
-
-CLAUDE_PLUGIN_OPTION_INJECT_ON_EVERY_PROMPT=false
-export CLAUDE_PLUGIN_OPTION_INJECT_ON_EVERY_PROMPT
-contains "first prompt injected when every-prompt is off" "GLOBAL BODY" "$(inject s4)"
-check "later prompts skipped when every-prompt is off" "" "$(inject s4)"
-contains "compaction re-injects when every-prompt is off" "GLOBAL BODY" "$(inject s4 SessionStart)"
-unset CLAUDE_PLUGIN_OPTION_INJECT_ON_EVERY_PROMPT
 
 check "inject emits valid JSON for the event" "SessionStart" \
   "$(jq -n --arg cwd "$ROOT/proj" '{hook_event_name: "SessionStart", session_id: "s5", cwd: $cwd}' |

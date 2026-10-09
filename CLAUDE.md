@@ -1,4 +1,4 @@
-# rule-anchor
+# nag
 
 A Claude Code plugin that injects an approved, hash-checked summary of the user's instructions on every prompt and after compaction. `README.md` covers usage.
 
@@ -20,7 +20,7 @@ Bump `version` in `.claude-plugin/plugin.json` for any user-visible change.
 
 ## Layout
 
-- `scripts/rule-anchor`: the CLI (`status`, `sources`, `write`, `inject`), used by both the hooks and the skills
+- `scripts/nag`: the CLI (`status`, `sources`, `write`, `inject`), used by both the hooks and the skills
 - `scripts/lib.sh`: options, source discovery, hashing, summary-file parsing
 - `hooks/hooks.json`: `UserPromptSubmit` and `SessionStart:compact` hooks, both running `inject`
 - `skills/refresh`, `skills/status`
@@ -33,7 +33,7 @@ Bump `version` in `.claude-plugin/plugin.json` for any user-visible change.
 - `inject` runs on every prompt. It never calls a model, it handles all files in one process per step rather than forking per file, and it always exits 0, sending errors to `$CLAUDE_PLUGIN_DATA/error.log`. Re-time it after changing the hot path; the current figures are in the spec.
 - Hashes and staleness are computed by scripts, never by the model.
 - Injected text is phrased as facts, not commands.
-- Nothing is written to the summary file without the user's approval in `/rule-anchor:refresh`.
+- Nothing is written to the summary file without the user's approval in `/nag:refresh`.
 
 ## Check
 

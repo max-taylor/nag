@@ -1,25 +1,25 @@
 ---
 name: refresh
-description: Draft, get approval for and save the rule-anchor summary of the user's CLAUDE.md, rules and output style, which a hook re-sends on every prompt. Use when a summary is missing or stale.
+description: Draft, get approval for and save the nag summary of the user's CLAUDE.md, rules and output style, which a hook re-sends on every prompt. Use when a summary is missing or stale.
 argument-hint: "[global|project]"
 disable-model-invocation: true
 allowed-tools:
-  - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/rule-anchor status*)
-  - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/rule-anchor sources *)
+  - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/nag status*)
+  - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/nag sources *)
   - Read
 ---
 
-Refresh the rule-anchor summary for scope `$ARGUMENTS`. If no scope is given, do both scopes, skipping any that are `fresh` or `none`. Do one scope at a time.
+Refresh the nag summary for scope `$ARGUMENTS`. If no scope is given, do both scopes, skipping any that are `fresh` or `none`. Do one scope at a time.
 
 ## 1. Check state
 
-Run `${CLAUDE_PLUGIN_ROOT}/scripts/rule-anchor status <scope>`. Note the summary path, `fingerprint` and `max_chars`. For a stale summary, also note the lines that list changed, added or removed sources.
+Run `${CLAUDE_PLUGIN_ROOT}/scripts/nag status <scope>`. Note the summary path, `fingerprint` and `max_chars`. For a stale summary, also note the lines that list changed, added or removed sources.
 
 If the requested scope is `fresh`, say so and stop, unless the user asked to redo it.
 
 ## 2. Read
 
-Run `${CLAUDE_PLUGIN_ROOT}/scripts/rule-anchor sources <scope>` and read every file it lists. If a summary already exists, read it as well.
+Run `${CLAUDE_PLUGIN_ROOT}/scripts/nag sources <scope>` and read every file it lists. If a summary already exists, read it as well.
 
 ## 3. Draft
 
@@ -41,9 +41,9 @@ If a summary already exists, show the user a diff from it. Otherwise show the fu
 When the user approves, save the summary with the fingerprint from step 1:
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/scripts/rule-anchor write <scope> --expect <fingerprint> <<'RULE_ANCHOR_EOF'
+${CLAUDE_PLUGIN_ROOT}/scripts/nag write <scope> --expect <fingerprint> <<'NAG_EOF'
 <approved summary>
-RULE_ANCHOR_EOF
+NAG_EOF
 ```
 
-If it reports that the sources changed, go back to step 1. When a project summary is saved, mention that `.claude/rule-anchor.md` is meant to be committed.
+If it reports that the sources changed, go back to step 1. When a project summary is saved, mention that `.claude/nag.md` is meant to be committed.

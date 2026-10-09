@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
-  "name": "rule-anchor",
-  "displayName": "Rule Anchor",
-  "version": "0.1.0",
+  "name": "nag",
+  "displayName": "Nag",
+  "version": "0.2.0",
   "description": "Keeps an approved summary of your CLAUDE.md, rules and output style in front of Claude on every prompt and after compaction, and flags it when the sources change.",
   "author": {
     "name": "Max Taylor",
@@ -21,7 +21,7 @@
       "type": "string",
       "title": "Global summary path",
       "description": "Where the approved global summary is stored. Point it into a dotfiles repo to version it. Don't put it in ~/.claude/rules/, or it loads twice.",
-      "default": "~/.claude/rule-anchor.md"
+      "default": "~/.claude/nag.md"
     },
     "max_chars": {
       "type": "number",
@@ -36,12 +36,6 @@
       "title": "Include CLAUDE.local.md",
       "description": "Summarise the uncommitted CLAUDE.local.md into the project summary, which is usually committed.",
       "default": false
-    },
-    "inject_on_every_prompt": {
-      "type": "boolean",
-      "title": "Inject on every prompt",
-      "description": "Off: inject only on the first prompt of a session and after compaction.",
-      "default": true
     }
   }
 }
