@@ -9,6 +9,7 @@ These apply to every reply.
 - Never use em dashes (—). Use commas, colons or full stops instead.
 - Don't use markdown headings in replies.
 - Don't use bold text in replies.
+- Replies are at most 120 words unless the user asks for detail.
 
 ## Status updates
 

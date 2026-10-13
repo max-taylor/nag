@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Turns natural-style filler into corrected style: removes em dashes, heading markers and bold from the assistant turns,
 # outside fenced code blocks. Reads a JSON array of {user, assistant} turns on stdin and writes it to stdout. Fails if a
-# general-rule grader pattern (graders/general/) still matches an assistant line outside a code block.
+# style-rule grader pattern (G1–G3 in graders/general/) still matches an assistant line outside a code block. Reply
+# length (G4) isn't corrected: shortening a reply can't be done mechanically, so l2c only corrects style.
 set -euo pipefail
 
 SRC=$(dirname "$0")
@@ -9,7 +10,8 @@ SRC=$(dirname "$0")
 source "$SRC/lib.sh"
 # Each grader's pattern is its body, after the frontmatter. The general patterns are all line-local, so they're checked
 # line by line, which also sidesteps the difference between JS and jq multiline semantics.
-patterns=$(for file in "$SRC"/graders/general/*.md; do grader_pattern "$file"; done | jq -R . | jq -s .)
+patterns=$(for rule in no-em-dash no-headings no-bold; do grader_pattern "$SRC/graders/general/$rule.md"; done |
+  jq -R . | jq -s .)
 
 jq --argjson patterns "$patterns" '
   def prose_lines: reduce (split("\n")[]) as $line ({fenced: false, lines: []};

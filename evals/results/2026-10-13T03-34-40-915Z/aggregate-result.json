@@ -1,0 +1,1108 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.296",
+  "startedAt": "2026-10-13T03:34:40.915Z",
+  "durationSeconds": 105,
+  "costUsd": 11.461011599999999,
+  "partial": false,
+  "suite": {
+    "root": "/Users/maxtaylor/Code/nag",
+    "ablation": "none",
+    "caseFilter": "l2-*",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "nag",
+        "version": "0.3.0",
+        "path": "/Users/maxtaylor/Code/nag"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "l2-commit-nag",
+      "dir": "evals/l2-commit-nag",
+      "source": "mixed",
+      "promptMarkdown": "Write the commit message for this change: invoice sync retries now send an idempotency key so a retried request can't charge a customer twice. Ticket BIL-482.\n",
+      "model": "claude-opus-5-5",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 2,
+      "graders": [
+        {
+          "name": "conventional",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(feat|fix|refactor|perf|chore|docs|test|build|ci)(\\([a-z0-9-]+\\))?: \\S",
+            "flags": "m",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "no-bold",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\*\\*[^*\\n]+\\*\\*|__[^_\\n]+__",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-em-dash",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "—",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-headings",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^#{1,6}\\s",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "subject-length",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(?=(feat|fix|refactor|perf|chore|docs|test|build|ci)[(:]).{51,}$",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "task-done",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "idempoten",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "ticket-suffix",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(feat|fix|refactor|perf|chore|docs|test|build|ci)(\\([a-z0-9-]+\\))?: .*\\[BIL-482\\]\\s*$",
+            "flags": "m",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 1.9610466,
+            "judgeCostUsd": 0,
+            "durationSeconds": 14,
+            "startedAt": "2026-10-13T03:34:41.016Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-RM8XaN/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "conventional",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^(feat|fix|refactor|perf|chore|docs|test|build|ci)(\\([a-z0-9-]+\\))?: \\S",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-bold",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-em-dash",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-headings",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "subject-length",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "task-done",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched idempoten",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "ticket-suffix",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^(feat|fix|refactor|perf|chore|docs|test|build|ci)(\\([a-z0-9-]+\\))?: .*\\[BIL-482\\]\\s*$",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    },
+    {
+      "name": "l2-commit-plain",
+      "dir": "evals/l2-commit-plain",
+      "source": "mixed",
+      "promptMarkdown": "Write the commit message for this change: invoice sync retries now send an idempotency key so a retried request can't charge a customer twice. Ticket BIL-482.\n",
+      "model": "claude-opus-5-5",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 2,
+      "graders": [
+        {
+          "name": "conventional",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(feat|fix|refactor|perf|chore|docs|test|build|ci)(\\([a-z0-9-]+\\))?: \\S",
+            "flags": "m",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "no-bold",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\*\\*[^*\\n]+\\*\\*|__[^_\\n]+__",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-em-dash",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "—",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-headings",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^#{1,6}\\s",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "subject-length",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(?=(feat|fix|refactor|perf|chore|docs|test|build|ci)[(:]).{51,}$",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "task-done",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "idempoten",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "ticket-suffix",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(feat|fix|refactor|perf|chore|docs|test|build|ci)(\\([a-z0-9-]+\\))?: .*\\[BIL-482\\]\\s*$",
+            "flags": "m",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 1.8540466,
+            "judgeCostUsd": 0,
+            "durationSeconds": 14,
+            "startedAt": "2026-10-13T03:34:55.494Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-InWJns/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "conventional",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^(feat|fix|refactor|perf|chore|docs|test|build|ci)(\\([a-z0-9-]+\\))?: \\S",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-bold",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-em-dash",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-headings",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "subject-length",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "task-done",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched idempoten",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "ticket-suffix",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^(feat|fix|refactor|perf|chore|docs|test|build|ci)(\\([a-z0-9-]+\\))?: .*\\[BIL-482\\]\\s*$",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    },
+    {
+      "name": "l2-question-nag",
+      "dir": "evals/l2-question-nag",
+      "source": "mixed",
+      "promptMarkdown": "In plain prose with no code, explain how a retry in invoice sync could charge a customer twice, and what usually prevents it.\n",
+      "model": "claude-opus-5-5",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 2,
+      "graders": [
+        {
+          "name": "no-bold",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\*\\*[^*\\n]+\\*\\*|__[^_\\n]+__",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-commit-line",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(feat|fix|refactor|perf|chore|docs|test|build|ci)(\\([a-z0-9-]+\\))?: \\S",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-em-dash",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "—",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-end-line",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\[end\\]",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-headings",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^#{1,6}\\s",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-status-line",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^\\s*STATUS:",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "task-done",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(?=[\\s\\S]*retr(y|ies))(?=[\\s\\S]*(twice|double|duplicate))(?=[\\s\\S]*idempoten)",
+            "flags": "i",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 1.9753826,
+            "judgeCostUsd": 0,
+            "durationSeconds": 24,
+            "startedAt": "2026-10-13T03:35:09.132Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-4FiJaZ/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-bold",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-commit-line",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-em-dash",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-end-line",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-headings",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-status-line",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "task-done",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^(?=[\\s\\S]*retr(y|ies))(?=[\\s\\S]*(twice|double|duplicate))(?=[\\s\\S]*idempoten)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    },
+    {
+      "name": "l2-question-plain",
+      "dir": "evals/l2-question-plain",
+      "source": "mixed",
+      "promptMarkdown": "In plain prose with no code, explain how a retry in invoice sync could charge a customer twice, and what usually prevents it.\n",
+      "model": "claude-opus-5-5",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 2,
+      "graders": [
+        {
+          "name": "no-bold",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\*\\*[^*\\n]+\\*\\*|__[^_\\n]+__",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-commit-line",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(feat|fix|refactor|perf|chore|docs|test|build|ci)(\\([a-z0-9-]+\\))?: \\S",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-em-dash",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "—",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-end-line",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\[end\\]",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-headings",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^#{1,6}\\s",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-status-line",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^\\s*STATUS:",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "task-done",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(?=[\\s\\S]*retr(y|ies))(?=[\\s\\S]*(twice|double|duplicate))(?=[\\s\\S]*idempoten)",
+            "flags": "i",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 1.8618666,
+            "judgeCostUsd": 0,
+            "durationSeconds": 23,
+            "startedAt": "2026-10-13T03:35:33.360Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-KPtrc2/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-bold",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-commit-line",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-em-dash",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-end-line",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-headings",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-status-line",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "task-done",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^(?=[\\s\\S]*retr(y|ies))(?=[\\s\\S]*(twice|double|duplicate))(?=[\\s\\S]*idempoten)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    },
+    {
+      "name": "l2-status-nag",
+      "dir": "evals/l2-status-nag",
+      "source": "mixed",
+      "promptMarkdown": "Write today's status update for the team. Changed: the ledger export now streams; the rate limiter moved to the gateway. Milestones: Beta demo on 14 November 2026, Public launch on 2 December 2026. Next steps: load-test the export, migrate the remaining webhooks, write the runbook.\n",
+      "model": "claude-opus-5-5",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 2,
+      "graders": [
+        {
+          "name": "end-line",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\[end\\]\\s*$",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "iso-dates",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(?=[\\s\\S]*2026-11-14)(?=[\\s\\S]*2026-12-02)",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "no-bold",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\*\\*[^*\\n]+\\*\\*|__[^_\\n]+__",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-em-dash",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "—",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-headings",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^#{1,6}\\s",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-month-dates",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\b(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|june?|july?|aug(ust)?|sept?(ember)?|oct(ober)?|nov(ember)?|dec(ember)?)\\b\\.?\\s+\\d{1,2}\\b|\\b\\d{1,2}(st|nd|rd|th)?\\s+(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|june?|july?|aug(ust)?|sept?(ember)?|oct(ober)?|nov(ember)?|dec(ember)?)\\b",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-numbered-list",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^\\s*\\d+[.)]\\s",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "status-line",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^\\s*STATUS: (green|amber|red)\\b",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "task-done",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(?=[\\s\\S]*ledger export)(?=[\\s\\S]*rate limit)(?=[\\s\\S]*beta demo)(?=[\\s\\S]*public launch)(?=[\\s\\S]*runbook)",
+            "flags": "i",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 1.9600346000000002,
+            "judgeCostUsd": 0,
+            "durationSeconds": 11,
+            "startedAt": "2026-10-13T03:35:56.395Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-ZaCaCb/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "end-line",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched \\[end\\]\\s*$",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "iso-dates",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^(?=[\\s\\S]*2026-11-14)(?=[\\s\\S]*2026-12-02)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-bold",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-em-dash",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-headings",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-month-dates",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-numbered-list",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "status-line",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^\\s*STATUS: (green|amber|red)\\b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "task-done",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^(?=[\\s\\S]*ledger export)(?=[\\s\\S]*rate limit)(?=[\\s\\S]*beta demo)(?=[\\s\\S]*public launch)(?=[\\s\\S]*runbook)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    },
+    {
+      "name": "l2-status-plain",
+      "dir": "evals/l2-status-plain",
+      "source": "mixed",
+      "promptMarkdown": "Write today's status update for the team. Changed: the ledger export now streams; the rate limiter moved to the gateway. Milestones: Beta demo on 14 November 2026, Public launch on 2 December 2026. Next steps: load-test the export, migrate the remaining webhooks, write the runbook.\n",
+      "model": "claude-opus-5-5",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 2,
+      "graders": [
+        {
+          "name": "end-line",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\[end\\]\\s*$",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "iso-dates",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(?=[\\s\\S]*2026-11-14)(?=[\\s\\S]*2026-12-02)",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "no-bold",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\*\\*[^*\\n]+\\*\\*|__[^_\\n]+__",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-em-dash",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "—",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-headings",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^#{1,6}\\s",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-month-dates",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\b(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|june?|july?|aug(ust)?|sept?(ember)?|oct(ober)?|nov(ember)?|dec(ember)?)\\b\\.?\\s+\\d{1,2}\\b|\\b\\d{1,2}(st|nd|rd|th)?\\s+(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|june?|july?|aug(ust)?|sept?(ember)?|oct(ober)?|nov(ember)?|dec(ember)?)\\b",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-numbered-list",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^\\s*\\d+[.)]\\s",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "status-line",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^\\s*STATUS: (green|amber|red)\\b",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "task-done",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(?=[\\s\\S]*ledger export)(?=[\\s\\S]*rate limit)(?=[\\s\\S]*beta demo)(?=[\\s\\S]*public launch)(?=[\\s\\S]*runbook)",
+            "flags": "i",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 1.8486346,
+            "judgeCostUsd": 0,
+            "durationSeconds": 18,
+            "startedAt": "2026-10-13T03:36:07.435Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-lGRECw/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "end-line",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched \\[end\\]\\s*$",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "iso-dates",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^(?=[\\s\\S]*2026-11-14)(?=[\\s\\S]*2026-12-02)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-bold",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-em-dash",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-headings",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-month-dates",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-numbered-list",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "status-line",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^\\s*STATUS: (green|amber|red)\\b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "task-done",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^(?=[\\s\\S]*ledger export)(?=[\\s\\S]*rate limit)(?=[\\s\\S]*beta demo)(?=[\\s\\S]*public launch)(?=[\\s\\S]*runbook)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 6,
+    "casesPassed": 6,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

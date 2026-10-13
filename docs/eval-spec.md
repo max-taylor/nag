@@ -1,6 +1,6 @@
 # nag eval suite: spec
 
-Status: implemented; pilot pending. Owner: Max. Written 2026-10-12.
+Status: pilot run 2026-10-13, no difference between nag on and off; project abandoned (see README). Owner: Max. Written 2026-10-12.
 
 ## 1. Question
 
@@ -55,14 +55,16 @@ The tool can't give the two arms different histories (§2), so every test is a p
 | `nag` | base + a `hook_additional_context` entry with nag's reminder after every user turn, as real use would have |
 | `plain` | base, unchanged |
 
-Both run in both arms (`--ablation with-without`), giving four cells per pair:
+Every case runs with the plugin loaded (`--ablation none`). Only `nag` cases have a scaffold. A `plain` case's sandbox has no CLAUDE.md and no summary, so nag's hook injects nothing (state `none`). That gives two cells per pair:
 
-| | with plugin | without plugin |
-| --- | --- | --- |
-| `nag` history | **nag enabled** (history reminders + live one) | history reminders only |
-| `plain` history | live reminder only | **nag disabled** (no reminders) |
+| | |
+| --- | --- |
+| `nag` history, seeded | **nag on**: history reminders + the live one |
+| `plain` history, unseeded | **nag off**: no reminders |
 
-**Headline result = `nag` history with plugin minus `plain` history without plugin.** The other two cells show how much of the effect comes from accumulated reminders versus the latest one. The tool's own per-case Δ is not the headline; `report.sh` (§4.7) computes the table.
+**Headline result = nag on minus nag off**, computed by `report.sh` (§4.7). The only other difference between the cells is that nag's two skills appear in the skill list in both, which is negligible.
+
+The first design ran both histories in both arms (`--ablation with-without`). That gave two more cells, "history reminders only" and "live reminder only", to show how much of the effect comes from accumulated reminders versus the latest one. They doubled the cost: the pilot hit a plan session limit after 17 of 48 runs (about $4 at list price, l1 runs at ~$0.70 each). If the headline shows an effect, a targeted two-arm run on one level can answer the attribution question later.
 
 Within a pair, the assistant text in the history is identical. In real use nag would also have kept the earlier replies on track, so this understates nag slightly. It doesn't favour it.
 
@@ -91,6 +93,7 @@ The test CLAUDE.md (`src/rules.md`) states:
 - G1. Replies never use em dashes (`—`).
 - G2. Replies don't use markdown headings.
 - G3. Replies don't use bold text.
+- G4. Replies are at most 120 words unless the user asks for detail. Added after the first pilot: Opus held G1–G3 and every situational rule at `l2` with nag off, while the drift seen in real use is mostly creeping verbosity. The filler's replies are 1,500–2,500 words, so the history pulls hard against it.
 
 **Status updates**
 
@@ -136,8 +139,8 @@ Case name: `<level>-<request>-<history>`, e.g. `l1-status-nag`, `l2c-commit-plai
 | History | `nag`, `plain` | 2 |
 
 - **24 cases.**
-- Each case runs in 2 arms × 3 runs = 6 runs, so **144 Claude sessions per full suite**.
-- 72 of those produce the headline cells, and 72 produce the secondary cells.
+- Each case runs once per run, × 3 runs, so **72 Claude sessions per full suite**.
+- Cost at list price on Opus, from the pilot: about $0.06 per `l0` run, $0.68 per `l1` run and an estimated $1.90 per `l2`/`l2c` run. A full suite is about $80, and the routine run (`l1` and `l2`, §6) about $46.
 
 ## 4. Components
 
@@ -178,7 +181,7 @@ One JSON object per line, linked by `parentUuid` (first entry `null`). Minimal s
 {"type":"assistant","uuid":"R2","parentUuid":"H2", …}
 ```
 
-- `plain` histories have no `hook_additional_context` entries. `nag` histories have one after every user turn, including turn 1.
+- `plain` histories have no `hook_additional_context` entries, and `plain` cases have no scaffold (§3.2). `nag` histories have one after every user turn, including turn 1.
 - Turn 1's assistant reply is short and follows the general rules in both filler styles.
 - Use fixed UUIDs and timestamps (derived from the turn index) so builds are deterministic and diffs stay small.
 - The CLAUDE.md context block is the text Claude Code renders CLAUDE.md into: `<system-reminder>`, "As you answer the user's questions, you can use the following context:", `# claudeMd`, the "Codebase and user instructions are shown below…" header, "Contents of /workspace/CLAUDE.md (project instructions, checked into the codebase):", then `rules.md`. It replaces the `instructions` attachment the probe used, which a resumed session reports as removed (§2). It also settles the old open question about whether the model sees the header: the header is now in the text itself.
@@ -202,7 +205,7 @@ It transforms the assistant turns only, outside fenced code blocks:
 - A line starting with `#`–`######` followed by a space keeps its text and loses the marker.
 - `**text**` and `__text__` become `text`.
 
-It's deterministic, run by `build.sh` rather than committed. Afterwards it checks that no G1–G3 grader pattern matches any assistant turn outside code blocks, and fails if one does.
+It doesn't shorten replies, so corrected style still breaks G4: length can't be corrected mechanically. A G4-compliant history would need filler generated under the rule. It's deterministic, run by `build.sh` rather than committed. Afterwards it checks that no G1–G3 grader pattern matches any assistant turn outside code blocks, and fails if one does.
 
 ### 4.4 Builder (`build.sh`)
 
@@ -218,7 +221,7 @@ Builds must be deterministic: running `build.sh` twice leaves `git status` clean
 
 ### 4.5 Scaffold (`seed.sh`)
 
-The runner docs say the scaffold is "a Bash script in the case directory", so `build.sh` copies `src/seed.sh` into each case dir. The copy resolves the repo the same way, since case dirs and `src/` sit at the same depth. It:
+The runner docs say the scaffold is "a Bash script in the case directory", so `build.sh` copies `src/seed.sh` into each `nag` case dir (`plain` cases are unseeded, §3.2). The copy resolves the repo the same way, since case dirs and `src/` sit at the same depth. It:
 
 1. Resolves the repo root from `$0` and `scripts/nag` from that.
 2. Writes `src/rules.md` to `$HOME/.claude/CLAUDE.md`.
@@ -249,7 +252,7 @@ No tools are needed: the answer is a single reply. The runner accepts an empty `
 
 Reads the newest `evals/results/*/aggregate-result.json` (or a path argument). For each level and request it prints:
 
-| level | request | nag on (`nag`/with) | nag off (`plain`/without) | Δ | history reminders only | live reminder only |
+| level | request | nag on (`nag` case) | nag off (`plain` case) | Δ |
 
 It prints:
 
@@ -272,6 +275,7 @@ All regex, so no judge model is needed. Weight 1 each, `target: last_message`. J
 | `no-em-dash.md` | not_contains | `—` | G1 |
 | `no-headings.md` | not_contains (flags `m`) | `^#{1,6}\s` | G2 |
 | `no-bold.md` | not_contains | `\*\*[^*\n]+\*\*\|__[^_\n]+__` | G3 |
+| `max-words.md` | not_contains | `^\s*(?:\S+\s+){120}\S` (matches a reply of 121+ words) | G4 |
 
 **Status (`graders/status/`)**
 
@@ -312,26 +316,31 @@ Notes:
 
 ```bash
 evals/src/build.sh
-claude plugin eval . --ablation with-without --scaffold --no-publish   # full suite: 24 cases, 144 sessions
+# routine: l1 and l2, 36 sessions, as two runs merged by report.sh
+claude plugin eval . --case 'l1-*' --ablation none --scaffold --no-publish
+claude plugin eval . --case 'l2-*' --ablation none --scaffold --no-publish
+evals/src/report.sh evals/results/<l1 run>/aggregate-result.json evals/results/<l2 run>/aggregate-result.json
+
+claude plugin eval . --ablation none --scaffold --no-publish   # full suite: 24 cases, 72 sessions
 evals/src/report.sh
 ```
 
-While iterating on rules and graders, use the cheap cases: `--case 'l0-*'` (no filler), then `--case 'l1-*'`. Run the full suite once they're settled.
+`--case` takes a simple glob without character classes (`l[12]-*` matches nothing), so the routine run is two runs. `l2-*` doesn't match `l2c-…`. `report.sh` merges any results files it's given by case, a later file winning, which is also how to re-run cases a session limit cut off. `l0` already passes everything (the floor check) and `l2c` waits until `l2` shows a gap.
 
-Pilot first: `claude plugin eval . --runs 1 --ablation with-without --scaffold --no-publish`. In the pilot, check:
+Pilot first: the routine commands with `--runs 1`. In the pilot, check:
 
 - `aggregate-result.json` → `suite.plugins` lists nag with no `manifest_invalid`, `disabled_by_default` or `will_not_load` problem.
-- With `--keep-temp` on one run each of `l1-status-nag` and `l1-status-plain`: in the session record under `config/projects/`, the with-plugin arm has a live `hook_additional_context` entry and the without-plugin arm doesn't. The `nag` history's reminders are present and `plain`'s aren't. The `instructions` header is present (§4.1).
+- With `--keep-temp` on one run each of `l1-status-nag` and `l1-status-plain`: the `nag` case has a live `hook_additional_context` entry and the `plain` case doesn't.
 - No `⚠ case … cannot pass with the granted tools` notice.
 - Read every reply and grade it by hand against the graders. Any disagreement means fixing the grader before the full run.
 - Ceiling/floor checks:
-  - If `plain` without plugin passes everything even at `l2`, the rules aren't drifting and need to be harder.
+  - If `plain` passes everything even at `l2`, the rules aren't drifting and need to be harder.
   - If everything fails at `l0`, the rules or requests are broken.
-- Record the pilot's top-level `costUsd`; one full suite ≈ that × 3. The rough estimate is ~13M input tokens per full suite before prompt caching, mostly from the `l2` and `l2c` cases.
+- Record the pilot's top-level `costUsd`; one full run of the same cases ≈ that × 3. A plan's session limit ends a run partway: those runs error with "You've hit your session limit" and `report.sh` leaves them out. Re-run the missing cases with `--case` after the limit resets.
 
 ## 7. Invariants (don't drop these)
 
-- `--ablation with-without` on every run.
+- `--ablation none` with `plain` cases unseeded, so the two cells are nag on and nag off (§3.2).
 - `runs` ≥ 3.
 - At least one negative case. The `question` cases are the negative for the situational rules.
 - Every case has an outcome grader (`task-done`), not only rule checks.
@@ -348,7 +357,6 @@ Open:
 
 - **A larger level:** a ~400k level was dropped for cost. Add `l3` if the pilot shows Δ still growing at `l2`.
 - **Reminder cadence:** real sessions inject on every user prompt. If filler turns are much longer than real prompts, the reminder density is lower than in real use. Note this when reading results.
-- **Length rule:** a reply-length rule (e.g. at most 120 words) is the most common real rule but needs a word count, not a regex. It could be added later as a small scripted or LLM check.
 
 ## 9. Not covered
 

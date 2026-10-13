@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Prints the headline tables for an eval run (docs/eval-spec.md §3.2, §4.7) from aggregate-result.json: the newest under
-# evals/results/ unless a path is given. Every case runs with the plugin loaded (`--ablation none`), so each case pair
+# evals/results/ unless paths are given. Several files are merged by case, a later file winning, so a suite run in parts
+# (e.g. `--case 'l1-*'` then `--case 'l2-*'`) reports as one. Every case runs with the plugin loaded (`--ablation none`), so each case pair
 # gives two cells: nag on (`nag` history, seeded) and nag off (`plain` history, unseeded, so nag injects nothing).
 # Runs without the plugin, from an older two-arm run, are ignored.
 #
@@ -8,10 +9,12 @@
 set -euo pipefail
 
 EVALS=$(cd "$(dirname "$0")/.." && pwd)
-result=${1:-$(printf '%s\n' "$EVALS"/results/*/aggregate-result.json | sort | tail -1)}
-[ -f "$result" ] || { echo "report: no aggregate-result.json found; pass its path" >&2; exit 1; }
+[ $# -gt 0 ] || set -- "$(printf '%s\n' "$EVALS"/results/*/aggregate-result.json | sort | tail -1)"
+for result in "$@"; do
+  [ -f "$result" ] || { echo "report: no aggregate-result.json at '$result'; pass its path" >&2; exit 1; }
+done
 
-echo "Results: $result"
+printf 'Results: %s\n' "$@"
 jq -r '
   def mean: if length == 0 then null else add / length end;
   def score: if . == null then "-" else . * 100 | round / 100 | tostring end;
@@ -42,11 +45,11 @@ jq -r '
         | table(["level", "request"] + columns))),
 
   "\nGeneral rules across all requests\n",
-  ([["l0", "l1", "l2", "l2c"][] as $level | ["no-em-dash", "no-headings", "no-bold"][] as $grader
+  ([["l0", "l1", "l2", "l2c"][] as $level | ["no-em-dash", "no-headings", "no-bold", "max-words"][] as $grader
     | [$ok[] | select(.level == $level)] as $level_runs | select($level_runs | length > 0)
     | [$level, $grader] + [("nag", "plain") as $h | $level_runs | map(select(.history == $h)) | rate($grader) | pct]]
     | table(["level", "rule"] + columns)),
 
   "\nRuns: \($runs | length), errored and left out: \($runs | map(select(.error != null)) | length)",
   ($runs[] | select(.error != null) | "  \(.level)-\(.request)-\(.history): \(.error | .[0:160])")
-' "$result"
+' <(jq -s '{cases: (map(.cases) | add | reverse | unique_by(.name))}' "$@")

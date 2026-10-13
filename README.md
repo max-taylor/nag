@@ -8,7 +8,9 @@
 
 Nag Claude into submission.
 
-Claude is Homer. It means well, it agrees with everything in your CLAUDE.md, and forty prompts later it has forgotten the lot. nag is Marge. On every prompt, and again after compaction, she reminds it of the rules: a short summary you approved of your CLAUDE.md, rules and output style. She also notices when that summary no longer matches its sources.
+> **Abandoned.** The eval suite (`evals/`, design in `docs/eval-spec.md`) found nothing for nag to fix. Opus 5.5 was given a CLAUDE.md with style rules (no em dashes, headings or bold) and situational rules (status update and commit message formats). It followed all of them after 150k tokens of conversation whose replies broke the style rules throughout, with nag off as well as on: every rule passed on both sides, so nag added nothing. The one rule it broke, a 120-word reply cap, it broke equally with nag on and off, and from the first turn (127 and 130 words), so that was its default length, not forgetting. The pilot ran each case once, but there was no gap to measure. The code still works and is kept for reference.
+
+The premise: Claude is Homer. It means well, it agrees with everything in your CLAUDE.md, and forty prompts later it has forgotten the lot. nag is Marge. On every prompt, and again after compaction, she reminds it of the rules: a short summary you approved of your CLAUDE.md, rules and output style. She also notices when that summary no longer matches its sources.
 
 Instruction files load once at session start and get buried as a session grows. A summary re-sent on every prompt keeps the key rules close to the conversation. Hand-written reminder hooks go stale silently. nag hashes the sources each summary was approved against, so a stale one is detected and flagged. Marge doesn't nag with outdated information.
 

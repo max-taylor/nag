@@ -50,6 +50,8 @@ const CASES = [
   ["status, numbered steps", GOOD_STATUS.replace(/^- /gm, "1. "), ["status"], ["status/no-numbered-list"]],
   ["status, missing work", GOOD_STATUS.replace("runbook", "docs"), ["status"], ["status/task-done"]],
   ["status, styled", GOOD_STATUS.replace("Next steps:", "## Next steps — **soon**"), ["general"], ["general/no-em-dash", "general/no-headings", "general/no-bold"]],
+  ["question, 121 words", `${"word ".repeat(120)}word`, ["general"], ["general/max-words"]],
+  ["question, 120 words", `${"word ".repeat(119)}word`, ["general"], []],
   ["status, underscore bold", GOOD_STATUS.replace("Changed", "__Changed__"), ["general"], ["general/no-bold"]],
   ["month words that aren't dates", `${GOOD_STATUS}\nWe may 2x throughput; mark 3 tests flaky; decided 4 things.`, ["status"], ["status/end-line"]],
   ["good commit", GOOD_COMMIT, ["general", "commit"], []],

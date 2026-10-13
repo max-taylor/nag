@@ -1,0 +1,402 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.296",
+  "startedAt": "2026-10-13T06:31:09.844Z",
+  "durationSeconds": 11,
+  "costUsd": 0.1055692,
+  "partial": false,
+  "suite": {
+    "root": "/Users/maxtaylor/Code/nag",
+    "ablation": "none",
+    "caseFilter": "l0-question-*",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "nag",
+        "version": "0.3.0",
+        "path": "/Users/maxtaylor/Code/nag"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "l0-question-nag",
+      "dir": "evals/l0-question-nag",
+      "source": "mixed",
+      "promptMarkdown": "In plain prose with no code, explain how a retry in invoice sync could charge a customer twice, and what usually prevents it.\n",
+      "model": "claude-opus-5-5",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 2,
+      "graders": [
+        {
+          "name": "max-words",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^\\s*(?:\\S+\\s+){120}\\S",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-bold",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\*\\*[^*\\n]+\\*\\*|__[^_\\n]+__",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-commit-line",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(feat|fix|refactor|perf|chore|docs|test|build|ci)(\\([a-z0-9-]+\\))?: \\S",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-em-dash",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "—",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-end-line",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\[end\\]",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-headings",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^#{1,6}\\s",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-status-line",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^\\s*STATUS:",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "task-done",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(?=[\\s\\S]*retr(y|ies))(?=[\\s\\S]*(twice|double|duplicate))(?=[\\s\\S]*idempoten)",
+            "flags": "i",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.875,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0.0551226,
+            "judgeCostUsd": 0,
+            "durationSeconds": 6,
+            "startedAt": "2026-10-13T06:31:09.939Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-j7fZW9/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "max-words",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern found (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-bold",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-commit-line",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-em-dash",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-end-line",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-headings",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-status-line",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "task-done",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^(?=[\\s\\S]*retr(y|ies))(?=[\\s\\S]*(twice|double|duplicate))(?=[\\s\\S]*idempoten)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.875,
+        "passRate": 0
+      }
+    },
+    {
+      "name": "l0-question-plain",
+      "dir": "evals/l0-question-plain",
+      "source": "mixed",
+      "promptMarkdown": "In plain prose with no code, explain how a retry in invoice sync could charge a customer twice, and what usually prevents it.\n",
+      "model": "claude-opus-5-5",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 2,
+      "graders": [
+        {
+          "name": "max-words",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^\\s*(?:\\S+\\s+){120}\\S",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-bold",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\*\\*[^*\\n]+\\*\\*|__[^_\\n]+__",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-commit-line",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(feat|fix|refactor|perf|chore|docs|test|build|ci)(\\([a-z0-9-]+\\))?: \\S",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-em-dash",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "—",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-end-line",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\[end\\]",
+            "flags": "",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-headings",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^#{1,6}\\s",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-status-line",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^\\s*STATUS:",
+            "flags": "m",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "task-done",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(?=[\\s\\S]*retr(y|ies))(?=[\\s\\S]*(twice|double|duplicate))(?=[\\s\\S]*idempoten)",
+            "flags": "i",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.875,
+            "passed": false,
+            "turns": 1,
+            "costUsd": 0.0504466,
+            "judgeCostUsd": 0,
+            "durationSeconds": 6,
+            "startedAt": "2026-10-13T06:31:15.507Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-GZlzqF/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "max-words",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern found (expected absent)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-bold",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-commit-line",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-em-dash",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-end-line",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-headings",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-status-line",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "task-done",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^(?=[\\s\\S]*retr(y|ies))(?=[\\s\\S]*(twice|double|duplicate))(?=[\\s\\S]*idempoten)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.875,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 2,
+    "casesPassed": 0,
+    "overallScore": 0.875,
+    "overallPassRate": 0
+  }
+}
