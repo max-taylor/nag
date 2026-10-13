@@ -1,0 +1,13 @@
+schema_version: "1.1"
+name: l2-question-nag
+runs: 3
+context:
+  scaffold_script: seed.sh
+  history_file: history.jsonl
+execution:
+  model: claude-opus-5-5
+  max_turns: 2
+  timeout_seconds: 300
+  allowed_tools: []
+  prompt: |
+    In plain prose with no code, explain how a retry in invoice sync could charge a customer twice, and what usually prevents it.

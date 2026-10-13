@@ -90,9 +90,9 @@ Set these with `/plugin configure nag`. Values are stored under `pluginConfigs` 
 ## Develop
 
 ```bash
-scripts/check    # shellcheck, the CLI tests (tests/run.sh) and strict plugin validation
+scripts/check    # shellcheck, the CLI tests (tests/run.sh), the eval graders' tests and strict plugin validation
 ```
 
-Needs `shellcheck` (`brew install shellcheck`) and the `claude` CLI. CI (`.github/workflows/check.yml`) runs it on macOS under `/bin/bash` 3.2 for every push to `main` and every pull request.
+Needs `shellcheck` (`brew install shellcheck`), `node` and the `claude` CLI. CI (`.github/workflows/check.yml`) runs it on macOS under `/bin/bash` 3.2 for every push to `main` and every pull request.
 
-Layout: `.claude-plugin/` (manifest and marketplace), `hooks/hooks.json`, `scripts/nag` (CLI, used by both hooks and skills), `scripts/lib.sh` (discovery, hashing, summary file), `scripts/check` (all checks, also run in CI), `skills/refresh`, `skills/status`, `tests/`. The design rationale is in `spec.md`, and the rules for keeping docs in sync are in `.claude/CLAUDE.md`.
+Layout: `.claude-plugin/` (manifest and marketplace), `hooks/hooks.json`, `scripts/nag` (CLI, used by both hooks and skills), `scripts/lib.sh` (discovery, hashing, summary file), `scripts/check` (all checks, also run in CI), `skills/refresh`, `skills/status`, `tests/`, `evals/` (an eval suite measuring whether nag keeps Claude following CLAUDE.md rules in long sessions; sources in `evals/src/`, design in `docs/eval-spec.md`). The design rationale is in `spec.md`, and the rules for keeping docs in sync are in `.claude/CLAUDE.md`.

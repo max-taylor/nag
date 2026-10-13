@@ -1,0 +1,1 @@
+Write today's status update for the team. Changed: the ledger export now streams; the rate limiter moved to the gateway. Milestones: Beta demo on 14 November 2026, Public launch on 2 December 2026. Next steps: load-test the export, migrate the remaining webhooks, write the runbook.

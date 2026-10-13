@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: l2c-commit-plain
+runs: 3
+context:
+  history_file: history.jsonl
+execution:
+  model: claude-opus-5-5
+  max_turns: 2
+  timeout_seconds: 300
+  allowed_tools: []
+  prompt: |
+    Write the commit message for this change: invoice sync retries now send an idempotency key so a retried request can't charge a customer twice. Ticket BIL-482.

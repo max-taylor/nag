@@ -25,12 +25,13 @@ Bump `version` in `.claude-plugin/plugin.json` for any user-visible change.
 - `hooks/hooks.json`: `UserPromptSubmit` and `SessionStart:compact` hooks, both running `inject`
 - `skills/refresh`, `skills/status`
 - `tests/run.sh`: CLI tests run against fixture home and project directories
-- `scripts/check`: every check (shellcheck, tests, plugin validation)
+- `scripts/check`: every check (shellcheck, tests, grader tests, plugin validation)
+- `evals/`: the `claude plugin eval` suite (design in `docs/eval-spec.md`). Edit `evals/src/` and re-run `evals/src/build.sh`; the case dirs are build output. Eval runs cost money, so don't run them unasked
 - `.claude-plugin/`: `plugin.json` and `marketplace.json`
 
 ## Constraints
 
-- Bash 3.2 (macOS `/bin/bash`): no associative arrays, `mapfile` or `${var,,}`. Dependencies are `jq`, `shasum` and `realpath` only.
+- Bash 3.2 (macOS `/bin/bash`): no associative arrays, `mapfile` or `${var,,}`. Dependencies are `jq`, `shasum` and `realpath` only. The eval tooling under `evals/` may also use `node` (grader tests) and `claude`; the plugin itself may not.
 - `inject` runs on every prompt. It never calls a model, it handles all files in one process per step rather than forking per file, and it always exits 0, sending errors to `$CLAUDE_PLUGIN_DATA/error.log`. Re-time it after changing the hot path; the current figures are in the spec.
 - Hashes and staleness are computed by scripts, never by the model.
 - Injected text is phrased as facts, not commands.
